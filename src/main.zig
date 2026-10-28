@@ -26,14 +26,14 @@ pub fn main(init: std.process.Init) !u8 {
 
     // Make sure the file exists
     cwd.access(io, path, .{}) catch |err| {
-        try print_error(stdout, "Failed to access '{s}' with error: {}\n", .{ path, err });
+        try print_error(stdout, "{} failed to access '{s}'\n", .{ err, path });
         try stdout.flush();
         return 1;
     };
 
     // Not sure why this wouldn't work, but if stat fails, we'll catch it!
     const file_stat = cwd.statFile(io, path, .{}) catch |err| {
-        try print_error(stdout, "Error statting file '{s}' with error {}", .{ path, err });
+        try print_error(stdout, "{} while statting file '{s}'\n", .{ err, path });
         try stdout.flush();
         return 1;
     };
@@ -45,6 +45,14 @@ pub fn main(init: std.process.Init) !u8 {
         return 1;
     }
 
+    var buffer: [1024]u8 = undefined;
+    const file = cwd.readFile(io, path, &buffer) catch |err| {
+        try print_error(stdout, "{} error reading file '{s}'\n", .{ err, path });
+        try stdout.flush();
+        return 1;
+    };
+
+    try stdout.writeAll(file);
     try stdout.flush();
 
     return 0;
